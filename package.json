@@ -1,0 +1,30 @@
+{
+  "name": "lpc-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for LPC language server",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "lpc-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gesslar/lpc-mcp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gesslar/lpc-mcp/issues"
+  },
+  "homepage": "https://github.com/gesslar/lpc-mcp#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.1",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver-protocol": "^3.17.5"
+  }
+}
