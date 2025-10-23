@@ -7,9 +7,10 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { spawn } from "child_process";
-import { createConnection } from "vscode-languageserver-protocol/node.js";
+import * as rpc from "vscode-jsonrpc/node.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import { Transform } from "stream";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,30 +38,102 @@ class LPCMCPServer {
     // Path to the LPC language server
     const lspPath = path.join(
       process.env.HOME,
-      ".vscode/extensions/jlchmura.lpc-1.1.42/out/server/src/bin.js"
+      ".vscode/extensions/jlchmura.lpc-1.1.42/out/server/src/server.js"
     );
+
+    console.error("Starting LPC Language Server from:", lspPath);
 
     // Spawn the LSP server
+    // Redirect stderr to /dev/null to prevent log messages from contaminating JSON-RPC
     this.lspProcess = spawn("node", [lspPath, "--stdio"], {
-      stdio: ["pipe", "pipe", "inherit"],
+      stdio: ["pipe", "pipe", "ignore"],
     });
 
-    // Create LSP connection
-    this.lspConnection = createConnection(
-      this.lspProcess.stdin,
-      this.lspProcess.stdout
-    );
-
-    // Initialize the LSP
-    await this.lspConnection.sendRequest("initialize", {
-      processId: process.pid,
-      rootUri: null,
-      capabilities: {},
+    this.lspProcess.on("error", (err) => {
+      console.error("LSP Process error:", err);
     });
 
-    await this.lspConnection.sendNotification("initialized");
+    this.lspProcess.on("exit", (code) => {
+      console.error("LSP Process exited with code:", code);
+    });
 
-    console.error("LPC Language Server started successfully");
+    // Create a transform stream to filter out non-JSON-RPC output
+    const cleanStream = new Transform({
+      transform(chunk, encoding, callback) {
+        const data = chunk.toString();
+        // Filter out lines that don't look like JSON-RPC
+        // JSON-RPC messages start with "Content-Length: "
+        const lines = data.split('\n');
+        const filtered = lines.filter(line => {
+          const trimmed = line.trim();
+          // Keep Content-Length headers and JSON lines
+          return trimmed.startsWith('Content-Length:') || 
+                 trimmed.startsWith('{') ||
+                 trimmed === '';
+        }).join('\n');
+        
+        if (filtered) {
+          this.push(filtered);
+        }
+        callback();
+      }
+    });
+
+    // Pipe stdout through the cleaner
+    this.lspProcess.stdout.pipe(cleanStream);
+
+    // Create JSON-RPC connection
+    const reader = new rpc.StreamMessageReader(cleanStream);
+    const writer = new rpc.StreamMessageWriter(this.lspProcess.stdin);
+    this.lspConnection = rpc.createMessageConnection(reader, writer);
+
+    this.lspConnection.onError((error) => {
+      console.error("LSP Connection error:", error);
+    });
+
+    this.lspConnection.onClose(() => {
+      console.error("LSP Connection closed");
+    });
+    
+    // Start listening
+    this.lspConnection.listen();
+
+    console.error("Initializing LSP...");
+
+    // Get workspace root from environment variable
+    const workspaceRoot = process.env.LPC_WORKSPACE_ROOT || null;
+    const rootUri = workspaceRoot ? `file://${workspaceRoot}` : null;
+    
+    console.error("Using workspace root:", rootUri);
+
+    // Initialize the LSP with timeout
+    try {
+      const initResult = await Promise.race([
+        this.lspConnection.sendRequest("initialize", {
+          processId: process.pid,
+          rootUri: rootUri,
+          capabilities: {
+            textDocument: {
+              hover: { dynamicRegistration: true },
+              definition: { dynamicRegistration: true },
+              references: { dynamicRegistration: true },
+            },
+          },
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("LSP init timeout")), 5000)
+        ),
+      ]);
+
+      console.error("LSP initialized:", JSON.stringify(initResult, null, 2));
+
+      await this.lspConnection.sendNotification("initialized", {});
+
+      console.error("LPC Language Server started successfully");
+    } catch (error) {
+      console.error("Failed to initialize LSP:", error);
+      throw error;
+    }
   }
 
   setupHandlers() {
@@ -148,6 +221,19 @@ class LPCMCPServer {
       const uri = `file://${args.file}`;
 
       try {
+        // Read the file and send didOpen notification
+        const fs = await import('fs/promises');
+        const fileContent = await fs.readFile(args.file, 'utf-8');
+        
+        await this.lspConnection.sendNotification("textDocument/didOpen", {
+          textDocument: {
+            uri,
+            languageId: "lpc",
+            version: 1,
+            text: fileContent,
+          },
+        });
+
         switch (name) {
           case "lpc_hover": {
             const result = await this.lspConnection.sendRequest(

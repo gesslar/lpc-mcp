@@ -17,14 +17,13 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "Unlicense",
   "bugs": {
     "url": "https://github.com/gesslar/lpc-mcp/issues"
   },
   "homepage": "https://github.com/gesslar/lpc-mcp#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.1",
-    "vscode-languageclient": "^9.0.1",
-    "vscode-languageserver-protocol": "^3.17.5"
+    "vscode-jsonrpc": "^8.2.1"
   }
 }
