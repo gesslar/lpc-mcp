@@ -22,6 +22,7 @@ All through conversation, powered by actual code intelligence instead of pattern
 - 🔍 **`lpc_hover`**: Get documentation/hover information for symbols
 - 🎯 **`lpc_definition`**: Jump to definition of symbols
 - 🔗 **`lpc_references`**: Find all references to a symbol
+- 🐛 **`lpc_diagnostics`**: Get real-time errors, warnings, and hints from the language server
 - 📁 **Workspace-aware**: Reads your `lpc-config.json` for proper symbol resolution
 - 🚀 **Fast**: Direct JSON-RPC communication with the language server
 
@@ -176,6 +177,12 @@ Once configured, you can ask your AI assistant natural language questions:
 **"What's the inheritance tree for rooms?"**
 → AI traces `inherit` statements and jumps to definitions
 
+**"Check if this LPC file has any syntax errors"**
+→ AI uses `lpc_diagnostics` to validate the code
+
+**"Why won't this LPC code compile?"**
+→ AI checks diagnostics for errors like undeclared variables or type mismatches
+
 ## Testing
 
 To verify the server works:
@@ -267,7 +274,7 @@ AI Assistant
 ## Roadmap
 
 - [ ] Add completion support
-- [ ] Add diagnostics (errors/warnings)
+- [x] Add diagnostics (errors/warnings)
 - [ ] Support signature help
 - [ ] Cache opened documents
 - [ ] Support multiple workspace roots

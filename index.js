@@ -31,6 +31,7 @@ class LPCMCPServer {
 
     this.lspProcess = null;
     this.lspConnection = null;
+    this.diagnosticsCache = new Map(); // Map of file URI -> diagnostics array
     this.setupHandlers();
   }
 
@@ -93,6 +94,12 @@ class LPCMCPServer {
 
     this.lspConnection.onClose(() => {
       console.error("LSP Connection closed");
+    });
+
+    // Listen for diagnostic notifications
+    this.lspConnection.onNotification("textDocument/publishDiagnostics", (params) => {
+      console.error(`Received diagnostics for ${params.uri}: ${params.diagnostics.length} issues`);
+      this.diagnosticsCache.set(params.uri, params.diagnostics);
     });
     
     // Start listening
@@ -208,6 +215,21 @@ class LPCMCPServer {
             required: ["file", "line", "character"],
           },
         },
+        {
+          name: "lpc_diagnostics",
+          description:
+            "Get diagnostics (errors, warnings, hints) for an LPC file. This reveals LPC language rules and syntax errors.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              file: {
+                type: "string",
+                description: "Absolute path to the LPC file",
+              },
+            },
+            required: ["file"],
+          },
+        },
       ],
     }));
 
@@ -288,6 +310,42 @@ class LPCMCPServer {
                 {
                   type: "text",
                   text: JSON.stringify(result, null, 2),
+                },
+              ],
+            };
+          }
+
+          case "lpc_diagnostics": {
+            // Just open the file to trigger diagnostics
+            // Wait a bit for diagnostics to come through
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const diagnostics = this.diagnosticsCache.get(uri) || [];
+            
+            if (diagnostics.length === 0) {
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: "No diagnostics found for this file. The code appears to be valid.",
+                  },
+                ],
+              };
+            }
+
+            // Format diagnostics in a readable way
+            const formatted = diagnostics.map(d => {
+              const severity = ["Error", "Warning", "Information", "Hint"][d.severity - 1] || "Unknown";
+              const line = d.range.start.line + 1; // Convert to 1-indexed
+              const char = d.range.start.character + 1;
+              return `[${severity}] Line ${line}:${char} - ${d.message}`;
+            }).join("\n");
+
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Found ${diagnostics.length} diagnostic(s):\n\n${formatted}\n\nRaw diagnostics:\n${JSON.stringify(diagnostics, null, 2)}`,
                 },
               ],
             };
