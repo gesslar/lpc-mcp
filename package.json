@@ -5,11 +5,20 @@
   "main": "index.js",
   "type": "module",
   "bin": {
-    "lpc-mcp": "./index.js"
+    "lpc-mcp": "./src/index.js"
   },
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "types:build": "tsc -p tsconfig.types.json",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "submit": "npm publish --access public",
+    "update": "npx npm-check-updates -u && npm install",
+    "test": "node --test tests/unit/*.test.js",
+    "pr": "gt submit --publish --restack --ai",
+    "patch": "npm version patch",
+    "minor": "npm version minor",
+    "major": "npm version major"
   },
   "repository": {
     "type": "git",
@@ -25,5 +34,11 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.1",
     "vscode-jsonrpc": "^8.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@stylistic/eslint-plugin": "^5.5.0",
+    "eslint-plugin-jsdoc": "^61.1.11",
+    "globals": "^16.5.0"
   }
 }
