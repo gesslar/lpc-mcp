@@ -7,6 +7,9 @@
   "bin": {
     "lpc-mcp": "./src/index.js"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/index.js",
     "types:build": "tsc -p tsconfig.types.json",
