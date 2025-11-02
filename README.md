@@ -150,6 +150,30 @@ Add to your Cline MCP settings:
 }
 ```
 
+### GitHub Copilot (VS Code)
+
+**Prerequisites:**
+- Install the [Copilot MCP extension](https://marketplace.visualstudio.com/items?itemName=automatalabs.copilot-mcp): `code --install-extension automatalabs.copilot-mcp`
+
+**Configuration:**
+Add to `~/Library/Application Support/Code/User/mcp.json` (macOS) or equivalent:
+
+```json
+{
+  "servers": {
+    "lpc": {
+      "type": "node",
+      "command": "node", 
+      "args": ["/absolute/path/to/lpc-mcp/index.js"],
+      "env": {
+        "LPC_WORKSPACE_ROOT": "/path/to/your/mudlib"
+      }
+    }
+  },
+  "inputs": []
+}
+```
+
 ### Other MCP-Compatible Tools
 
 The configuration is the same for any MCP-compatible tool:
