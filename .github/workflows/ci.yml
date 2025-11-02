@@ -1,4 +1,6 @@
 name: Giddyup
+permissions:
+  contents: read
 
 on:
   push:
