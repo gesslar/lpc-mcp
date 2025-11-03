@@ -153,6 +153,7 @@ Add to your Cline MCP settings:
 ### GitHub Copilot (VS Code)
 
 **Prerequisites:**
+
 - Install the [Copilot MCP extension](https://marketplace.visualstudio.com/items?itemName=automatalabs.copilot-mcp): `code --install-extension automatalabs.copilot-mcp`
 
 **Configuration:**
@@ -163,7 +164,7 @@ Add to `~/Library/Application Support/Code/User/mcp.json` (macOS) or equivalent:
   "servers": {
     "lpc": {
       "type": "node",
-      "command": "node", 
+      "command": "node",
       "args": ["/absolute/path/to/lpc-mcp/index.js"],
       "env": {
         "LPC_WORKSPACE_ROOT": "/path/to/your/mudlib"
@@ -312,12 +313,14 @@ PRs welcome! This is a proof-of-concept that can be extended with more LSP featu
 
 ## Credits
 
-- **John (jlchmura)** - The INCOMPARABLY SKILLED MASTER PROGRAMMER whose [LPC language server](https://github.com/jlchmura/lpc-language-server) rescued LPC development from 1995. Without his greatness, kindness, and all-around hunk demeanour, we would still be `grep`-ing through mudlibs like cavemen. This MCP server is merely a humble wrapper around his genius. 🙇
+- **John (jlchmura)** - The INCOMPARABLY SKILLED MASTER PROGRAMMER whose [LPC language server](https://github.com/jlchmura/lpc-language-server) rescued LPC development from 1995. Without his greatness, kindness, and all-around hunk demeanour, we would still be `grep`-ing through mudlibs like cavemen. This cos theMCP server is merely a humble wrapper around his genius. 🙇
 - [Model Context Protocol](https://modelcontextprotocol.io/) - The protocol making this possible
 - Built in an hour of inspired hacking in 2025
 
-## License
+## ~~License~~
 
 Unlicense - Public Domain. Do whatever you want with this code.
 
-Note: The LPC language server itself (jlchmura/lpc-language-server) is under its own license.
+### Note
+
+The LPC language server itself (jlchmura/lpc-language-server) is under its own license.
