@@ -26,7 +26,17 @@
     "type": "git",
     "url": "git+https://github.com/gesslar/lpc-mcp.git"
   },
-  "keywords": [],
+  "keywords": [
+    "fluffos",
+    "lpc",
+    "mud",
+    "mcp",
+    "model-context-protocol",
+    "shlemiel",
+    "schlemazel",
+    "hasenpfeffer",
+    "incorporated"
+  ],
   "author": "gesslar",
   "license": "Unlicense",
   "homepage": "https://github.com/gesslar/lpc-mcp#readme",
