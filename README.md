@@ -30,10 +30,10 @@ All through conversation, powered by actual code intelligence instead of pattern
 
 ### 1. Install Node.js
 
-Node.js 16+ required:
+Node.js 20+ required:
 
 ```bash
-node --version  # Should be v16.0.0 or higher
+node --version  # Should be v20.0.0 or higher
 ```
 
 ### 2. Install the LPC Language Server Extension
