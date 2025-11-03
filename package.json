@@ -17,8 +17,7 @@
     "lint:fix": "eslint src/ --fix",
     "submit": "npm publish --access public",
     "update": "npx npm-check-updates -u && npm install",
-    "test": "node --test tests/unit/*.test.js",
-    "pr": "gt submit --publish --restack --ai",
+    "pr": "gt submit --publish --restack --ai -m",
     "patch": "npm version patch",
     "minor": "npm version minor",
     "major": "npm version major"
@@ -30,12 +29,9 @@
   "keywords": [],
   "author": "gesslar",
   "license": "Unlicense",
-  "bugs": {
-    "url": "https://github.com/gesslar/lpc-mcp/issues"
-  },
   "homepage": "https://github.com/gesslar/lpc-mcp#readme",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.20.1",
+    "@modelcontextprotocol/sdk": "^1.20.2",
     "vscode-jsonrpc": "^8.2.1"
   },
   "devDependencies": {
