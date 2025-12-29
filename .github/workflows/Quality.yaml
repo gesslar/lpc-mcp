@@ -14,16 +14,23 @@ jobs:
   #
   ### PACKAGE MANAGER
   #
-  #   Set the package manager to use: 'npm' or 'pnpm'
+  #   Set the package manager to use: "auto", "npm" or "pnpm
   #   This will configure the appropriate setup and commands throughout
   #   the workflow.
   #
-  #   Example:  PACKAGE_MANAGER="pnpm"
+  #   If set to "auto", this workflow will attempt to read the "packageManager"
+  #   value of the package.json. So, make sure you have one and that you have
+  #   also set this value. If it discovers pnpm, it will use that and falls
+  #   back to npm if missing.
+  #
+  #   Example:
+  #             PACKAGE_MANAGER="auto"
+  #             PACKAGE_MANAGER="pnpm"
   #             PACKAGE_MANAGER="npm"
   #
   ### LINTING #########################################################
   #
-  #   If we need to perform linting, set the value to 'yes'. Any other
+  #   If we need to perform linting, set the value to "yes". Any other
   #   value will skip linting.
   #
   #   Example:  PERFORM_LINTING="yes"
@@ -31,7 +38,7 @@ jobs:
   #
   ### TESTING #########################################################
   #
-  #   If we need to perform testing, set the value to 'yes'. Any other
+  #   If we need to perform testing, set the value to "yes". Any other
   #   value will skip testing.
   #
   #   Example:  PERFORM_TESTING="yes"
@@ -43,14 +50,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     outputs:
-      perform_testing: ${{ steps.cfg.outputs.perform_testing }}
-      perform_linting: ${{ steps.cfg.outputs.perform_linting }}
-      package_manager: ${{ steps.cfg.outputs.package_manager }}
-      pm_install_cmd: ${{ steps.cfg.outputs.pm_install_cmd }}
+      perform_testing: ${{ steps.cfg1.outputs.perform_testing }}
+      perform_linting: ${{ steps.cfg1.outputs.perform_linting }}
+      package_manager: ${{ steps.cfg1.outputs.package_manager }}
+      pm_install_cmd: ${{ steps.cfg2.outputs.pm_install_cmd }}
+      pm_default: ${{ steps.cfg1.outputs.pm_default }}
 
     steps:
-      - name: Configure workflow
-        id: cfg
+      - name: Configure Linting and Testing
+        id: cfg1
         run: |+
           #############################################################
           PACKAGE_MANAGER="pnpm"
@@ -58,20 +66,37 @@ jobs:
           PERFORM_TESTING="no"
           #############################################################
 
-          # Apply configuration
-          PACKAGE_MANAGER="pnpm"
+          echo "perform_linting=${PERFORM_LINTING}" >> "$GITHUB_OUTPUT"
+          echo "perform_testing=${PERFORM_TESTING}" >> "$GITHUB_OUTPUT"
           echo "package_manager=${PACKAGE_MANAGER}" >> "$GITHUB_OUTPUT"
+          echo "pm_default=npm" >> "$GITHUB_OUTPUT"
 
-          # Set package manager specific commands and versions
-          if [ "$PACKAGE_MANAGER" = "pnpm" ]; then
+      - name: Check out repository
+        if: ${{ steps.cfg1.outputs.package_manager == "auto" }}
+        uses: actions/checkout@v6
+
+      - name: Configure Package Manager
+        id: cfg2
+        run: |+
+          PM_DEFAULT="${{ steps.cfg1.outputs.pm_default }}"
+          PACKAGE_MANAGER="${{ steps.cfg1.outputs.package_manager }}"
+
+          if [[ "$PACKAGE_MANAGER" = "auto" ]]; then
+            PM=$(jq .packageManager package.json 2>/dev/null)
+            if [[ ! "$PM" ]]; then
+              PACKAGE_MANAGER="$PM_DEFAULT"
+            elif [[ "$PM" =~ ^pnpm@\d.\d.\d$ ]]; then
+              PACKAGE_MANAGER="pnpm"
+            else
+              PACKAGE_MANAGER="$PM_DEFAULT"
+            end
+          fi
+
+          if [[ "$PACKAGE_MANAGER" = "pnpm" ]]; then
             echo "pm_install_cmd=pnpm install --frozen-lockfile" >> "$GITHUB_OUTPUT"
           else
             echo "pm_install_cmd=npm ci" >> "$GITHUB_OUTPUT"
           fi
-
-          echo "perform_linting=${PERFORM_LINTING}" >> "$GITHUB_OUTPUT"
-          echo "perform_testing=${PERFORM_TESTING}" >> "$GITHUB_OUTPUT"
-
   Lint:
     needs: ConfigureWorkflow
     runs-on: ubuntu-latest
