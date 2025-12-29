@@ -114,7 +114,8 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install pnpm
-        if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' && needs.ConfigureWorkflow.outputs.package_manager == 'pnpm' }}
+        if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' &&
+          needs.ConfigureWorkflow.outputs.package_manager == 'pnpm' }}
         uses: pnpm/action-setup@v4
 
       - name: Using Node v${{ matrix.node-version }}
@@ -149,7 +150,8 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install pnpm
-        if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' && needs.ConfigureWorkflow.outputs.package_manager == 'pnpm' }}
+        if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' &&
+          needs.ConfigureWorkflow.outputs.package_manager == 'pnpm' }}
         uses: pnpm/action-setup@v4
 
       - name: Using Node v${{ matrix.node-version }}
