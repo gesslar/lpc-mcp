@@ -11,22 +11,47 @@ on:
       - main
 
 jobs:
+  ### CONFIGURATION ###################################################
+  #
+  ### QUALITY CHECK WORKFLOW
+  #
+  #   If you want to wait for a quality workflow to complete before
+  #   creating a release, specify its name here. Leave empty to skip.
+  #
+  #   Example:  QUALITY_CHECK="CodeQL, Linting, Testing"
+  #             QUALITY_CHECK=""
+  #
+  ### GIT CONFIGURATION
+  #
+  #   Configure the Git user for tagging operations.
+  #
+  #   Example:  GIT_USER_NAME="github-actions"
+  #             GIT_USER_EMAIL="github-actions@github.com"
+  #
+  #####################################################################
+
   ConfigureWorkflow:
     runs-on: ubuntu-latest
 
     outputs:
       quality_check: ${{ steps.cfg.outputs.quality_check }}
+      git_user_name: ${{ steps.cfg.outputs.git_user_name }}
+      git_user_email: ${{ steps.cfg.outputs.git_user_email }}
 
     steps:
       - name: Configure workflow
         id: cfg
         run: |+
-          # If we need to wait for a workflow to have completed before
-          # we get here, name the workflow here so that it is checked
-          # against later. Or just leave empty, implicitly telling this
-          # workflow not to wait, just keep swimming.
+          #############################################################
+          QUALITY_CHECK="CodeQL, Linting, Testing"
+          GIT_USER_NAME="github-actions"
+          GIT_USER_EMAIL="github-actions@github.com"
+          #############################################################
 
-          echo "quality_check='CodeQL, Linting, Testing'" >> "$GITHUB_OUTPUT"
+          # Apply configuration
+          echo "quality_check=${QUALITY_CHECK}" >> "$GITHUB_OUTPUT"
+          echo "git_user_name=${GIT_USER_NAME}" >> "$GITHUB_OUTPUT"
+          echo "git_user_email=${GIT_USER_EMAIL}" >> "$GITHUB_OUTPUT"
 
   WaitForQuality:
     needs: ConfigureWorkflow
@@ -86,10 +111,6 @@ jobs:
     permissions:
       contents: write
 
-    env:
-      GIT_USER_NAME: "github-actions"
-      GIT_USER_EMAIL: "github-actions@github.com"
-
     outputs:
       new_tag: ${{ steps.check_tag.outputs.new_tag }}
 
@@ -99,15 +120,13 @@ jobs:
 
       - name: Setup Git Variables
         run: |+
-          echo "GIT_USER_NAME=${GIT_USER_NAME}" >> $GITHUB_ENV
-          echo "GIT_USER_EMAIL=${GIT_USER_EMAIL}" >> $GITHUB_ENV
-          git config user.name "${GIT_USER_NAME}"
-          git config user.email "${GIT_USER_EMAIL}"
+          git config user.name "${{ needs.ConfigureWorkflow.outputs.git_user_name }}"
+          git config user.email "${{ needs.ConfigureWorkflow.outputs.git_user_email }}"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: 22
 
       - name: Install dependencies
         run: npm install
@@ -140,7 +159,7 @@ jobs:
           fi
 
   PrepareGitHubRelease:
-    needs: CreateTag
+    needs: [ConfigureWorkflow, CreateTag]
     runs-on: ubuntu-latest
     if: ${{ needs.CreateTag.outputs.new_tag != '🙅🏻‍♂️' }}
 
@@ -149,8 +168,6 @@ jobs:
 
     env:
       NEW_TAG: ${{ needs.CreateTag.outputs.new_tag }}
-      GIT_USER_NAME: "github-actions"
-      GIT_USER_EMAIL: "github-actions@github.com"
 
     steps:
       - name: Setup New Tag
@@ -162,15 +179,13 @@ jobs:
 
       - name: Setup Git Variables
         run: |
-          echo "GIT_USER_NAME=${GIT_USER_NAME}" >> $GITHUB_ENV
-          echo "GIT_USER_EMAIL=${GIT_USER_EMAIL}" >> $GITHUB_ENV
-          git config user.name "${GIT_USER_NAME}"
-          git config user.email "${GIT_USER_EMAIL}"
+          git config user.name "${{ needs.ConfigureWorkflow.outputs.git_user_name }}"
+          git config user.email "${{ needs.ConfigureWorkflow.outputs.git_user_email }}"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: 22
 
       - name: Install dependencies
         run: npm install
@@ -181,14 +196,13 @@ jobs:
           echo "ARTEFACT=${ARTEFACT}" >> $GITHUB_ENV
 
       - name: Create Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ env.NEW_TAG }}
-          name: Release ${{ env.NEW_TAG }}
-          draft: false
-          prerelease: false
-          artifacts: ${{ env.ARTEFACT }}
-          generateReleaseNotes: true
+        env:
+          GH_TOKEN: ${{ secrets. GITHUB_TOKEN }}
+        run: >
+          gh release create "${{ env.NEW_TAG }}"
+          --title "Release ${{ env.NEW_TAG }}"
+          --generate-notes
+          "${{ env.ARTEFACT }}"
 
   PublishToNPM:
     needs: DetermineVersion
@@ -207,7 +221,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: 22
 
       - name: Ship it
         run: |
