@@ -1,30 +1,31 @@
 {
   "name": "@gesslar/lpc-mcp",
-  "version": "0.1.6",
   "description": "MCP server for LPC language server",
+  "author": "gesslar",
+  "version": "0.1.6",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gesslar/lpc-mcp.git"
+  },
   "main": "index.js",
   "type": "module",
   "bin": {
     "lpc-mcp": "./src/index.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "start": "node src/index.js",
     "types:build": "tsc -p tsconfig.types.json",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "submit": "npm publish --access public",
-    "update": "npx npm-check-updates -u && npm install",
-    "pr": "gt submit --publish --restack --ai -m",
-    "patch": "npm version patch",
-    "minor": "npm version minor",
-    "major": "npm version major"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gesslar/lpc-mcp.git"
+    "submit": "pnpm publish --access public --//registry.npmjs.org/:_authToken=\"${NPM_ACCESS_TOKEN}\"",
+    "update": "pnpm up -L",
+    "pr": "gt submit -p --ai",
+    "patch": "pnpm version patch",
+    "minor": "pnpm version minor",
+    "major": "pnpm version major"
   },
   "keywords": [
     "fluffos",
@@ -37,17 +38,14 @@
     "hasenpfeffer",
     "incorporated"
   ],
-  "author": "gesslar",
   "license": "Unlicense",
   "homepage": "https://github.com/gesslar/lpc-mcp#readme",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.20.2",
+    "@modelcontextprotocol/sdk": "^1.25.1",
     "vscode-jsonrpc": "^8.2.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.0",
-    "@stylistic/eslint-plugin": "^5.5.0",
-    "eslint-plugin-jsdoc": "^61.1.11",
-    "globals": "^16.5.0"
+    "@gesslar/uglier": "^0.0.9",
+    "eslint": "^9.39.2"
   }
 }

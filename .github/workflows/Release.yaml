@@ -1,0 +1,211 @@
+name: Release
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  ConfigureWorkflow:
+    runs-on: ubuntu-latest
+
+    outputs:
+      quality_check: ${{ steps.cfg.outputs.quality_check }}
+
+    steps:
+      - name: Configure workflow
+        id: cfg
+        run: |+
+          # If we need to wait for a workflow to have completed before
+          # we get here, name the workflow here so that it is checked
+          # against later. Or just leave empty, implicitly telling this
+          # workflow not to wait, just keep swimming.
+
+          echo "quality_check='CodeQL, Linting, Testing'" >> "$GITHUB_OUTPUT"
+
+  WaitForQuality:
+    needs: ConfigureWorkflow
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.merged == true }}
+
+    steps:
+      - name: Wait for Quality workflow to complete
+        if: ${{ needs.ConfigureWorkflow.outputs.quality_check != '' }}
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.ref }}
+          running-workflow-name: ${{ needs.ConfigureWorkflow.outputs.quality_check }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+
+      - name: Skipping wait (no quality_check configured)
+        if: ${{ needs.ConfigureWorkflow.outputs.quality_check == '' }}
+        run: echo "No quality check configured; continuing."
+
+  DetermineVersion:
+    needs: WaitForQuality
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.merged == true }}
+
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: check_version
+        uses: gesslar/new-version-questionmark@v1.3.20
+        with:
+          source: package.json
+          version_pattern: "^v\\d+\\.\\d+\\.\\d+$"
+
+      - name: Show result
+        id: version
+        run: |+
+          UPDATED_VERSION="${{ steps.check_version.outputs.updated_version }}"
+
+          if [[ "$UPDATED_VERSION" == "no changes" ]]; then
+            echo "VERSION=🙅🏻‍♂️" >>  "$GITHUB_OUTPUT"
+          else
+            echo "VERSION=${UPDATED_VERSION}" >> "$GITHUB_OUTPUT"
+          fi
+
+  CreateTag:
+    needs: DetermineVersion
+    if: ${{ needs.DetermineVersion.outputs.version != '🙅🏻‍♂️' }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    env:
+      GIT_USER_NAME: "github-actions"
+      GIT_USER_EMAIL: "github-actions@github.com"
+
+    outputs:
+      new_tag: ${{ steps.check_tag.outputs.new_tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Git Variables
+        run: |+
+          echo "GIT_USER_NAME=${GIT_USER_NAME}" >> $GITHUB_ENV
+          echo "GIT_USER_EMAIL=${GIT_USER_EMAIL}" >> $GITHUB_ENV
+          git config user.name "${GIT_USER_NAME}"
+          git config user.email "${GIT_USER_EMAIL}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Read version from package.json
+        id: get_version
+        run: |
+          CURRENT_VERSION=${{ needs.DetermineVersion.outputs.version }}
+
+      - name: Fetch all tags
+        run: git fetch --tags
+
+      - name: Check for existing tag and create if it does not exist
+        id: check_tag
+        run: |+
+          CURRENT_VERSION="${{ needs.DetermineVersion.outputs.version }}"
+          TAG_EXISTS=$(git tag -l "v${CURRENT_VERSION}")
+
+          echo "Value of TAG_EXISTS: $TAG_EXISTS"
+
+          if [ -z "$TAG_EXISTS" ]; then
+            echo "Tag does not exist for version v${CURRENT_VERSION}. Creating tag."
+            git tag "v${CURRENT_VERSION}"
+            git push origin "v${CURRENT_VERSION}"
+            echo "new_tag=v${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+          else
+            echo "Tag already exists for version v${CURRENT_VERSION}. Skipping tag creation."
+            echo "new_tag=🙅🏻‍♂️" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+  PrepareGitHubRelease:
+    needs: CreateTag
+    runs-on: ubuntu-latest
+    if: ${{ needs.CreateTag.outputs.new_tag != '🙅🏻‍♂️' }}
+
+    permissions:
+      contents: write
+
+    env:
+      NEW_TAG: ${{ needs.CreateTag.outputs.new_tag }}
+      GIT_USER_NAME: "github-actions"
+      GIT_USER_EMAIL: "github-actions@github.com"
+
+    steps:
+      - name: Setup New Tag
+        run: |
+          echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Git Variables
+        run: |
+          echo "GIT_USER_NAME=${GIT_USER_NAME}" >> $GITHUB_ENV
+          echo "GIT_USER_EMAIL=${GIT_USER_EMAIL}" >> $GITHUB_ENV
+          git config user.name "${GIT_USER_NAME}"
+          git config user.email "${GIT_USER_EMAIL}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build artefact
+        run: |
+          ARTEFACT=$(npm pack 2>/dev/null | tail -1)
+          echo "ARTEFACT=${ARTEFACT}" >> $GITHUB_ENV
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ env.NEW_TAG }}
+          name: Release ${{ env.NEW_TAG }}
+          draft: false
+          prerelease: false
+          artifacts: ${{ env.ARTEFACT }}
+          generateReleaseNotes: true
+
+  PublishToNPM:
+    needs: DetermineVersion
+    if: ${{ github.event.pull_request.merged == true && needs.DetermineVersion.outputs.version != '🙅🏻‍♂️' }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+    env:
+      TOKEN: ${{ secrets.NPM_GITHUB_CD_ACCESS_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Ship it
+        run: |
+          npm publish --access public --//registry.npmjs.org/:_authToken=${TOKEN}
