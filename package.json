@@ -2,7 +2,7 @@
   "name": "@gesslar/lpc-mcp",
   "description": "MCP server for LPC language server",
   "author": "gesslar",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gesslar/lpc-mcp.git"
