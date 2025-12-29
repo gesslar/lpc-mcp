@@ -50,20 +50,26 @@ jobs:
         if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
         uses: actions/checkout@v6
 
+      - name: Install pnpm
+        if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Using Node v${{ matrix.node-version }}
         if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Install dependencies
         if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Perform lint check
         if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
-        run: npm run lint
+        run: pnpm run lint
 
   Test:
     needs: ConfigureWorkflow
@@ -81,20 +87,26 @@ jobs:
         if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
         uses: actions/checkout@v6
 
+      - name: Install pnpm
+        if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Using Node v${{ matrix.node-version }}
         if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Install dependencies
         if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Definitely don't cheat on tests
         if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
-        run: npm test
+        run: pnpm test
 
   Analyze:
     name: Analyze (${{ matrix.language }})
@@ -139,7 +151,7 @@ jobs:
           # By default, queries listed here will override any specified in a config file.
           # Prefix the list here with "+" to use these queries and those in the config file.
 
-          # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
+          # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-[...]
           # queries: security-extended,security-and-quality
 
       # If the analyze step fails for one of the languages you are analyzing with
