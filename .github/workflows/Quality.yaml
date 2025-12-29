@@ -11,6 +11,7 @@ on:
 jobs:
   ConfigureWorkflow:
     runs-on: ubuntu-latest
+    permissions: {}
     outputs:
       perform_testing: ${{ steps.cfg.outputs.perform_testing }}
       perform_linting: ${{ steps.cfg.outputs.perform_linting }}
