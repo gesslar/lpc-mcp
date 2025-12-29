@@ -16,10 +16,31 @@ jobs:
     outputs:
       perform_testing: ${{ steps.cfg.outputs.perform_testing }}
       perform_linting: ${{ steps.cfg.outputs.perform_linting }}
+      package_manager: ${{ steps.cfg.outputs.package_manager }}
+      pm_install_cmd: ${{ steps.cfg.outputs.pm_install_cmd }}
+      pm_version: ${{ steps.cfg.outputs.pm_version }}
     steps:
       - name: Configure workflow
         id: cfg
         run: |+
+          ### PACKAGE MANAGER #################################################
+          #
+          # Set the package manager to use: 'npm' or 'pnpm'
+          # This will configure the appropriate setup and commands throughout
+          # the workflow.
+
+          PACKAGE_MANAGER="pnpm"
+          echo "package_manager=${PACKAGE_MANAGER}" >> "$GITHUB_OUTPUT"
+
+          # Set package manager specific commands and versions
+          if [ "$PACKAGE_MANAGER" = "pnpm" ]; then
+            echo "pm_install_cmd=pnpm install --frozen-lockfile" >> "$GITHUB_OUTPUT"
+            echo "pm_version=9" >> "$GITHUB_OUTPUT"
+          else
+            echo "pm_install_cmd=npm ci" >> "$GITHUB_OUTPUT"
+            echo "pm_version=" >> "$GITHUB_OUTPUT"
+          fi
+
           ### LINTING #########################################################
           #
           # If we need to perform linting, set the value to 'yes'. Any other
@@ -51,25 +72,25 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install pnpm
-        if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
+        if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' && needs.ConfigureWorkflow.outputs.package_manager == 'pnpm' }}
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ needs.ConfigureWorkflow.outputs.pm_version }}
 
       - name: Using Node v${{ matrix.node-version }}
         if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
+          cache: ${{ needs.ConfigureWorkflow.outputs.package_manager }}
 
       - name: Install dependencies
         if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
-        run: pnpm install --frozen-lockfile
+        run: ${{ needs.ConfigureWorkflow.outputs.pm_install_cmd }}
 
       - name: Perform lint check
         if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
-        run: pnpm run lint
+        run: ${{ needs.ConfigureWorkflow.outputs.package_manager }} run lint
 
   Test:
     needs: ConfigureWorkflow
@@ -88,25 +109,25 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install pnpm
-        if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
+        if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' && needs.ConfigureWorkflow.outputs.package_manager == 'pnpm' }}
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ needs.ConfigureWorkflow.outputs.pm_version }}
 
       - name: Using Node v${{ matrix.node-version }}
         if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
+          cache: ${{ needs.ConfigureWorkflow.outputs.package_manager }}
 
       - name: Install dependencies
         if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
-        run: pnpm install --frozen-lockfile
+        run: ${{ needs.ConfigureWorkflow.outputs.pm_install_cmd }}
 
       - name: Definitely don't cheat on tests
         if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
-        run: pnpm test
+        run: ${{ needs.ConfigureWorkflow.outputs.package_manager }} test
 
   Analyze:
     name: Analyze (${{ matrix.language }})
