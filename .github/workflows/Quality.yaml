@@ -61,7 +61,7 @@ jobs:
         id: cfg1
         run: |+
           #############################################################
-          PACKAGE_MANAGER="pnpm"
+          PACKAGE_MANAGER="auto"
           PERFORM_LINTING="yes"
           PERFORM_TESTING="no"
           #############################################################
