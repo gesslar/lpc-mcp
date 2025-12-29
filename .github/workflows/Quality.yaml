@@ -72,7 +72,7 @@ jobs:
           echo "pm_default=npm" >> "$GITHUB_OUTPUT"
 
       - name: Check out repository
-        if: ${{ steps.cfg1.outputs.package_manager == "auto" }}
+        if: ${{ steps.cfg1.outputs.package_manager == 'auto' }}
         uses: actions/checkout@v6
 
       - name: Configure Package Manager
