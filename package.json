@@ -15,6 +15,7 @@
   "engines": {
     "node": ">=22"
   },
+  "packageManager": "pnpm@10.26.2",
   "scripts": {
     "start": "node src/index.js",
     "types:build": "tsc -p tsconfig.types.json",
