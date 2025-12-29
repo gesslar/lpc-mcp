@@ -10,6 +10,35 @@ on:
     - cron: "20 14 * * 1"
 
 jobs:
+  ### CONFIGURATION ###################################################
+  #
+  ### PACKAGE MANAGER
+  #
+  #   Set the package manager to use: 'npm' or 'pnpm'
+  #   This will configure the appropriate setup and commands throughout
+  #   the workflow.
+  #
+  #   Example:  PACKAGE_MANAGER="pnpm"
+  #             PACKAGE_MANAGER="npm"
+  #
+  ### LINTING #########################################################
+  #
+  #   If we need to perform linting, set the value to 'yes'. Any other
+  #   value will skip linting.
+  #
+  #   Example:  PERFORM_LINTING="yes"
+  #             PERFORM_LINTING="no"
+  #
+  ### TESTING #########################################################
+  #
+  #   If we need to perform testing, set the value to 'yes'. Any other
+  #   value will skip testing.
+  #
+  #   Example:  PERFORM_TESTING="yes"
+  #             PERFORM_TESTING="no"
+  #
+  #####################################################################
+
   ConfigureWorkflow:
     runs-on: ubuntu-latest
     permissions: {}
@@ -23,12 +52,13 @@ jobs:
       - name: Configure workflow
         id: cfg
         run: |+
-          ### PACKAGE MANAGER #################################################
-          #
-          # Set the package manager to use: 'npm' or 'pnpm'
-          # This will configure the appropriate setup and commands throughout
-          # the workflow.
+          #############################################################
+          PACKAGE_MANAGER="pnpm"
+          PERFORM_LINTING="yes"
+          PERFORM_TESTING="no"
+          #############################################################
 
+          # Apply configuration
           PACKAGE_MANAGER="pnpm"
           echo "package_manager=${PACKAGE_MANAGER}" >> "$GITHUB_OUTPUT"
 
@@ -39,19 +69,8 @@ jobs:
             echo "pm_install_cmd=npm ci" >> "$GITHUB_OUTPUT"
           fi
 
-          ### LINTING #########################################################
-          #
-          # If we need to perform linting, set the value to 'yes'. Any other
-          # value will skip linting.
-
-          echo "perform_linting=yes" >> "$GITHUB_OUTPUT"
-
-          ### TESTING #########################################################
-          #
-          # If we need to perform testing, set the value to 'yes'. Any other
-          # value will skip testing.
-
-          echo "perform_testing=no" >> "$GITHUB_OUTPUT"
+          echo "perform_linting=${PERFORM_LINTING}" >> "$GITHUB_OUTPUT"
+          echo "perform_testing=${PERFORM_TESTING}" >> "$GITHUB_OUTPUT"
 
   Lint:
     needs: ConfigureWorkflow
@@ -150,41 +169,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Add any setup steps before running the `github/codeql-action/init` action.
-      # This includes steps like installing compilers or runtimes (`actions/setup-node`
-      # or others). This is typically only required for manual builds.
-      # - name: Setup runtime (example)
-      #   uses: actions/setup-example@v1
-
-      # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
-          # If you wish to specify custom queries, you can do so here or in a config file.
-          # By default, queries listed here will override any specified in a config file.
-          # Prefix the list here with "+" to use these queries and those in the config file.
-
-          # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-[...]
+          # Uncomment to enable stricter security queries:
           # queries: security-extended,security-and-quality
-
-      # If the analyze step fails for one of the languages you are analyzing with
-      # "We were unable to automatically build your code", modify the matrix above
-      # to set the build mode to "manual" for that language. Then modify this step
-      # to build your code.
-      # ℹ️ Command-line programs to run using the OS shell.
-      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-      - name: Run manual build steps
-        if: matrix.build-mode == 'manual'
-        shell: bash
-        run: |
-          echo 'If you are using a "manual" build mode for one or more of the' \
-            'languages you are analyzing, replace this with the commands to build' \
-            'your code, for example:'
-          echo '  make bootstrap'
-          echo '  make release'
-          exit 1
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
