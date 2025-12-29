@@ -89,7 +89,7 @@ jobs:
               PACKAGE_MANAGER="pnpm"
             else
               PACKAGE_MANAGER="$PM_DEFAULT"
-            end
+            fi
           fi
 
           if [[ "$PACKAGE_MANAGER" = "pnpm" ]]; then
