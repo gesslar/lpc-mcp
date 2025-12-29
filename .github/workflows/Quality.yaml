@@ -18,7 +18,7 @@ jobs:
       perform_linting: ${{ steps.cfg.outputs.perform_linting }}
       package_manager: ${{ steps.cfg.outputs.package_manager }}
       pm_install_cmd: ${{ steps.cfg.outputs.pm_install_cmd }}
-      pm_version: ${{ steps.cfg.outputs.pm_version }}
+
     steps:
       - name: Configure workflow
         id: cfg
@@ -35,10 +35,8 @@ jobs:
           # Set package manager specific commands and versions
           if [ "$PACKAGE_MANAGER" = "pnpm" ]; then
             echo "pm_install_cmd=pnpm install --frozen-lockfile" >> "$GITHUB_OUTPUT"
-            echo "pm_version=9" >> "$GITHUB_OUTPUT"
           else
             echo "pm_install_cmd=npm ci" >> "$GITHUB_OUTPUT"
-            echo "pm_version=" >> "$GITHUB_OUTPUT"
           fi
 
           ### LINTING #########################################################
@@ -74,8 +72,6 @@ jobs:
       - name: Install pnpm
         if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' && needs.ConfigureWorkflow.outputs.package_manager == 'pnpm' }}
         uses: pnpm/action-setup@v4
-        # with:
-        #   version: ${{ needs.ConfigureWorkflow.outputs.pm_version }}
 
       - name: Using Node v${{ matrix.node-version }}
         if: ${{ needs.ConfigureWorkflow.outputs.perform_linting == 'yes' }}
@@ -111,8 +107,6 @@ jobs:
       - name: Install pnpm
         if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' && needs.ConfigureWorkflow.outputs.package_manager == 'pnpm' }}
         uses: pnpm/action-setup@v4
-        # with:
-        #   version: ${{ needs.ConfigureWorkflow.outputs.pm_version }}
 
       - name: Using Node v${{ matrix.node-version }}
         if: ${{ needs.ConfigureWorkflow.outputs.perform_testing == 'yes' }}
