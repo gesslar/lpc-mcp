@@ -112,6 +112,8 @@ jobs:
             printf "\n"
           fi
 
+          alias
+
   Lint:
     needs: ConfigureWorkflow
     runs-on: ubuntu-latest
