@@ -70,7 +70,7 @@ jobs:
           echo "perform_linting=${PERFORM_LINTING}" >> "$GITHUB_OUTPUT"
           echo "perform_testing=${PERFORM_TESTING}" >> "$GITHUB_OUTPUT"
           echo "package_manager=${PACKAGE_MANAGER}" >> "$GITHUB_OUTPUT"
-          echo "pm_default=npm" >> "$GITHUB_OUTPUT"
+          echo "pm_default='npm'" >> "$GITHUB_OUTPUT"
 
       - name: Check out repository
         if: ${{ steps.cfg1.outputs.package_manager == 'auto' }}
