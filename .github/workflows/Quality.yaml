@@ -100,6 +100,8 @@ jobs:
             printf "%s\n", "$PACKAGE_MANAGER" "$PM_VERSION"
           fi
 
+          echo "package_manager=${PACKAGE_MANAGER}" >> "$GITHUB_OUTPUT"
+
           if [[ "$PACKAGE_MANAGER" = "pnpm" ]]; then
             echo "pm_install_cmd=pnpm install --frozen-lockfile" >> "$GITHUB_OUTPUT"
           else
@@ -109,13 +111,15 @@ jobs:
         run: |+
           printf "Linting: %s\n" "${{ steps.cfg1.outputs.perform_linting }}"
           printf "Testing: %s\n" "${{ steps.cfg1.outputs.perform_testing }}"
-          printf "Package Manager: %s" "${{ steps.cfg2.outputs.pm_install_cmd }}"
+          printf "Package Manager: %s" "${{ steps.cfg2.outputs.package_manager }}"
 
           if [[ "${{ steps.cfg2.outputs.pm_version }}" ]]; then
             printf " (%s)\n" "${{ steps.cfg2.outputs.pm_version }}"
           else
             printf "\n"
           fi
+
+          printf "Package Manager Install: %s" "${{ steps.cfg2.outputs.pm_install_cmd }}"
 
           type npm
 
