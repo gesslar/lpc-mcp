@@ -50,8 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     outputs:
-      perform_testing: ${{ steps.cfg1.outputs.perform_testing }}
       perform_linting: ${{ steps.cfg1.outputs.perform_linting }}
+      perform_testing: ${{ steps.cfg1.outputs.perform_testing }}
       package_manager: ${{ steps.cfg1.outputs.package_manager }}
       pm_install_cmd: ${{ steps.cfg2.outputs.pm_install_cmd }}
       pm_default: ${{ steps.cfg1.outputs.pm_default }}
@@ -100,6 +100,18 @@ jobs:
           else
             echo "pm_install_cmd=npm ci" >> "$GITHUB_OUTPUT"
           fi
+      - name: Display Configuration
+        run: |+
+          printf "Linting: %s\n" "${{ steps.cfg1.outputs.perform_linting }}"
+          printf "Testing: %s\n" "${{ steps.cfg1.outputs.perform_testing }}"
+          printf "Package Manager: %s" "${{ steps.cfg2.outputs.pm_install_cmd }}"
+
+          if [[ "${{ steps.cfg2.outputs.pm_version }}" ]]; then
+            printf " (%s)\n" "${{ steps.cfg2.outputs.pm_version }}"
+          else
+            printf "\n"
+          fi
+
   Lint:
     needs: ConfigureWorkflow
     runs-on: ubuntu-latest
