@@ -52,7 +52,7 @@ jobs:
     outputs:
       perform_linting: ${{ steps.cfg1.outputs.perform_linting }}
       perform_testing: ${{ steps.cfg1.outputs.perform_testing }}
-      package_manager: ${{ steps.cfg1.outputs.package_manager }}
+      package_manager: ${{ steps.cfg2.outputs.package_manager }}
       pm_install_cmd: ${{ steps.cfg2.outputs.pm_install_cmd }}
       pm_default: ${{ steps.cfg1.outputs.pm_default }}
       pm_version: ${{ steps.cfg2.outputs.pm_version }}
@@ -107,6 +107,7 @@ jobs:
           else
             echo "pm_install_cmd=npm ci" >> "$GITHUB_OUTPUT"
           fi
+
       - name: Display Configuration
         run: |+
           printf "Linting: %s\n" "${{ steps.cfg1.outputs.perform_linting }}"
