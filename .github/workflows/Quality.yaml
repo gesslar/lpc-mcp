@@ -112,7 +112,7 @@ jobs:
             printf "\n"
           fi
 
-          alias
+          type npm
 
   Lint:
     needs: ConfigureWorkflow
