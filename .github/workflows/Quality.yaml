@@ -113,8 +113,8 @@ jobs:
           printf "Testing: %s\n" "${{ steps.cfg1.outputs.perform_testing }}"
           printf "Package Manager: %s" "${{ steps.cfg2.outputs.package_manager }}"
 
-          if [[ "${{ steps.cfg2.outputs.pm_version }}" ]]; then
-            printf " (%s)\n" "${{ steps.cfg2.outputs.pm_version }}"
+          if [[ "${{ steps.cfg2.outputs.package_manager }}" = "pnpm" ]]; then
+            printf " (%s)\n" "${{ steps.cfg2.outputs.package_manager }}"
           else
             printf "\n"
           fi
