@@ -101,6 +101,7 @@ jobs:
           fi
 
           echo "package_manager=${PACKAGE_MANAGER}" >> "$GITHUB_OUTPUT"
+          echo "pm_version=${PM_VERSION}" >> "$GITHUB_OUTPUT"
 
           if [[ "$PACKAGE_MANAGER" = "pnpm" ]]; then
             echo "pm_install_cmd=pnpm install --frozen-lockfile" >> "$GITHUB_OUTPUT"
