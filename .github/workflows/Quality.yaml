@@ -116,7 +116,7 @@ jobs:
           printf "Package Manager: %s" "${{ steps.cfg2.outputs.package_manager }}"
 
           if [[ "${{ steps.cfg2.outputs.package_manager }}" = "pnpm" ]]; then
-            printf " (%s)\n" "${{ steps.cfg2.outputs.package_manager }}"
+            printf " (%s)\n" "${{ steps.cfg2.outputs.pm_version }}"
           else
             printf "\n"
           fi
