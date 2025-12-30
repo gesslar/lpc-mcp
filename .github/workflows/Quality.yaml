@@ -87,13 +87,13 @@ jobs:
             printf "Detecting: "
 
             PM=$(jq .packageManager package.json 2>/dev/null)
-            printf "PM=%s" "$PM"
+            printf "PM=%s\n" "$PM"
 
             if [[ ! "$PM" ]]; then
               PACKAGE_MANAGER="$PM_DEFAULT"
-            elif [[ "$PM" =~ ^pnpm@(\d+.\d+.\d+)$ ]]; then
-              PACKAGE_MANAGER="pnpm"
-              PM_VERSION="${BASH_REMATCH[1]}"
+            elif [[ "$PM" =~ ^(pnpm)@(\\d+.\\d+.\\d+)$ ]]; then
+              PACKAGE_MANAGER="${BASH_REMATCH[1]}"
+              PM_VERSION="${BASH_REMATCH[2]}"
             else
               PACKAGE_MANAGER="$PM_DEFAULT"
               PM_VERSION=""
