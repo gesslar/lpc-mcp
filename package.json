@@ -3,30 +3,11 @@
   "description": "MCP server for LPC language server",
   "author": "gesslar",
   "version": "1.1.3",
+  "license": "Unlicense",
+  "homepage": "https://github.com/gesslar/lpc-mcp#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gesslar/lpc-mcp.git"
-  },
-  "main": "index.js",
-  "type": "module",
-  "bin": {
-    "lpc-mcp": "./src/index.js"
-  },
-  "engines": {
-    "node": ">=22"
-  },
-  "packageManager": "pnpm@10.26.2",
-  "scripts": {
-    "start": "node src/index.js",
-    "types:build": "tsc -p tsconfig.types.json",
-    "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix",
-    "submit": "pnpm publish --access public --//registry.npmjs.org/:_authToken=\"${NPM_ACCESS_TOKEN}\"",
-    "update": "pnpm up -L",
-    "pr": "gt submit -p --ai",
-    "patch": "pnpm version patch",
-    "minor": "pnpm version minor",
-    "major": "pnpm version major"
   },
   "keywords": [
     "fluffos",
@@ -39,8 +20,27 @@
     "hasenpfeffer",
     "incorporated"
   ],
-  "license": "Unlicense",
-  "homepage": "https://github.com/gesslar/lpc-mcp#readme",
+  "packageManager": "pnpm@10.26.2",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "lpc-mcp": "./src/index.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "types:build": "tsc -p tsconfig.types.json",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "submit": "pnpm publish --access public --//registry.npmjs.org/:_authToken=\"${NPM_ACCESS_TOKEN}\"",
+    "update": "pnpm up -L",
+    "pr": "gt submit -p --ai",
+    "patch": "pnpm version patch",
+    "minor": "pnpm version minor",
+    "major": "pnpm version major"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",
     "vscode-jsonrpc": "^8.2.1"
