@@ -83,6 +83,9 @@ jobs:
           PACKAGE_MANAGER="${{ steps.cfg1.outputs.package_manager }}"
 
           if [[ "$PACKAGE_MANAGER" = "auto" ]]; then
+            printf "Package manager set to 'auto'.\n"
+            printf "Detecting: "
+
             PM=$(jq .packageManager package.json 2>/dev/null)
             if [[ ! "$PM" ]]; then
               PACKAGE_MANAGER="$PM_DEFAULT"
@@ -93,6 +96,8 @@ jobs:
               PACKAGE_MANAGER="$PM_DEFAULT"
               PM_VERSION=""
             fi
+
+            prinf "%s\n", "$PACKAGE_MANAGER" "$PM_VERSION"
           fi
 
           if [[ "$PACKAGE_MANAGER" = "pnpm" ]]; then
