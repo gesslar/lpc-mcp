@@ -1,7 +1,11 @@
 {
   "name": "@gesslar/lpc-mcp",
   "description": "MCP server for LPC language server",
-  "author": "gesslar",
+  "author": {
+    "name": "gesslar",
+    "email": "bmw@gesslar.dev",
+    "url": "https://gesslar.dev"
+  },
   "version": "1.2.0",
   "license": "Unlicense",
   "homepage": "https://github.com/gesslar/lpc-mcp#readme",
