@@ -89,7 +89,7 @@ jobs:
             PM=$(jq .packageManager package.json 2>/dev/null)
             if [[ ! "$PM" ]]; then
               PACKAGE_MANAGER="$PM_DEFAULT"
-            elif [[ "$PM" =~ ^pnpm@(\d.\d.\d)$ ]]; then
+            elif [[ "$PM" =~ ^pnpm@(\d+.\d+.\d+)$ ]]; then
               PACKAGE_MANAGER="pnpm"
               PM_VERSION="${BASH_REMATCH[1]}"
             else
@@ -119,9 +119,7 @@ jobs:
             printf "\n"
           fi
 
-          printf "Package Manager Install: %s" "${{ steps.cfg2.outputs.pm_install_cmd }}"
-
-          type npm
+          printf "Package Manager Install: %s\n" "${{ steps.cfg2.outputs.pm_install_cmd }}"
 
   Lint:
     needs: ConfigureWorkflow
