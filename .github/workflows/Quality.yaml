@@ -86,7 +86,7 @@ jobs:
             printf "Package manager set to 'auto'.\n"
             printf "Detecting: "
 
-            PM=$(jq .packageManager package.json 2>/dev/null)
+            PM=$(jq -r .packageManager package.json 2>/dev/null)
             printf "PM=%s\n" "$PM"
 
             if [[ ! "$PM" ]]; then
@@ -98,8 +98,6 @@ jobs:
               PACKAGE_MANAGER="$PM_DEFAULT"
               PM_VERSION=""
             fi
-
-            printf "%s\n" "$PACKAGE_MANAGER" "$PM_VERSION"
           fi
 
           echo "package_manager=${PACKAGE_MANAGER}" >> "$GITHUB_OUTPUT"
