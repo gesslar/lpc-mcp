@@ -91,7 +91,7 @@ jobs:
 
             if [[ ! "$PM" ]]; then
               PACKAGE_MANAGER="$PM_DEFAULT"
-            elif [[ "$PM" =~ ^(pnpm)@(\\d+.\\d+.\\d+)$ ]]; then
+            elif [[ "$PM" =~ ^(pnpm)@([[:digit:]]+.[[:digit:]]+.[[:digit:]]+)$ ]]; then
               PACKAGE_MANAGER="${BASH_REMATCH[1]}"
               PM_VERSION="${BASH_REMATCH[2]}"
             else
