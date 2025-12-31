@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  release:
+  RunRelease:
     uses: gesslar/Maint/.github/workflows/Release.yaml@main
     secrets: inherit
     with:
