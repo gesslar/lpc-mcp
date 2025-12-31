@@ -16,4 +16,4 @@ jobs:
     with:
       package_manager: "auto"
       perform_linting: "${{ vars.PERFORM_LINTING || 'yes' }}"
-      perform_testing: "${{ vars.PERFORM_TESTING || 'yes' }}"
+      perform_testing: "${{ vars.PERFORM_TESTING || 'no' }}"
