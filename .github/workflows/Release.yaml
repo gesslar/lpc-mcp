@@ -12,3 +12,5 @@ jobs:
     with:
       package_manager: "auto"
       quality_check: "Quality"
+    permissions:
+      contents: write
