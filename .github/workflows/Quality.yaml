@@ -10,7 +10,7 @@ on:
     - cron: "20 14 * * 1"
 
 jobs:
-  RunQuality:
+  Quality:
     uses: gesslar/Maint/.github/workflows/Quality.yaml@main
     secrets: inherit
     with:
