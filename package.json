@@ -3,7 +3,6 @@
   "description": "MCP server for LPC language server",
   "author": {
     "name": "gesslar",
-    "email": "bmw@gesslar.dev",
     "url": "https://gesslar.dev"
   },
   "version": "1.4.14",
@@ -24,7 +23,7 @@
     "hasenpfeffer",
     "incorporated"
   ],
-  "packageManager": "pnpm@10.26.2",
+  "packageManager": "pnpm@10.28.0",
   "main": "index.js",
   "type": "module",
   "bin": {
@@ -39,18 +38,20 @@
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "submit": "pnpm publish --access public --//registry.npmjs.org/:_authToken=\"${NPM_ACCESS_TOKEN}\"",
-    "update": "pnpm up --latest --recursive",
+    "update": "pnpm self-update && pnpx npm-check-updates -u && pnpm install",
     "pr": "gt submit -p --ai",
     "patch": "pnpm version patch",
     "minor": "pnpm version minor",
     "major": "pnpm version major"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.1",
-    "vscode-jsonrpc": "^8.2.1"
+    "@gesslar/toolkit": "^3.23.0",
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "vscode-jsonrpc": "^8.2.1",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@gesslar/uglier": "^1.0.0",
+    "@gesslar/uglier": "^1.1.0",
     "eslint": "^9.39.2"
   }
 }

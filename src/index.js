@@ -1,20 +1,18 @@
 #!/usr/bin/env node
 
-import {Server} from "@modelcontextprotocol/sdk/server/index.js"
+import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js"
 import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js"
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js"
+import * as z from "zod/v4"
 import {spawn} from "child_process"
 import * as rpc from "vscode-jsonrpc/node.js"
 import path from "path"
+import {DirectoryObject} from "@gesslar/toolkit"
 // ...existing code...
 import {Transform} from "stream"
 
 class LPCMCPServer {
   constructor() {
-    this.server = new Server(
+    this.server = new McpServer(
       {
         name: "lpc-mcp-server",
         version: "0.1.0",
@@ -29,15 +27,25 @@ class LPCMCPServer {
     this.lspProcess = null
     this.lspConnection = null
     this.diagnosticsCache = new Map() // Map of file URI -> diagnostics array
-    this.setupHandlers()
+    this.setupTools()
   }
 
   async startLSP() {
-    // Path to the LPC language server
-    const lspPath = path.join(
-      process.env.HOME,
-      ".vscode/extensions/jlchmura.lpc-1.1.42/out/server/src/server.js"
-    )
+    // Find the latest LPC language server extension
+    const extensionsDir = new DirectoryObject(path.join(process.env.HOME, ".vscode/extensions"))
+    const {directories} = await extensionsDir.read("jlchmura.lpc-*")
+
+    if(directories.length === 0) {
+      throw new Error("LPC language server extension not found. Please install the jlchmura.lpc extension.")
+    }
+
+    // Sort by name to get the latest version (highest version number last)
+    const latestExtension = directories
+      .map(dir => dir.name)
+      .sort()
+      .reverse()[0]
+
+    const lspPath = path.join(extensionsDir.path, latestExtension, "out/server/src/server.js")
 
     console.error("Starting LPC Language Server from:", lspPath)
 
@@ -142,109 +150,26 @@ class LPCMCPServer {
     }
   }
 
-  setupHandlers() {
-    this.server.setRequestHandler(ListToolsRequestSchema, async() => ({
-      tools: [
-        {
-          name: "lpc_hover",
-          description:
-            "Get hover information (documentation) for a symbol at a specific position in an LPC file",
-          inputSchema: {
-            type: "object",
-            properties: {
-              file: {
-                type: "string",
-                description: "Absolute path to the LPC file",
-              },
-              line: {
-                type: "number",
-                description: "Line number (0-indexed)",
-              },
-              character: {
-                type: "number",
-                description: "Character position (0-indexed)",
-              },
-            },
-            required: ["file", "line", "character"],
-          },
-        },
-        {
-          name: "lpc_definition",
-          description:
-            "Go to definition of a symbol at a specific position in an LPC file",
-          inputSchema: {
-            type: "object",
-            properties: {
-              file: {
-                type: "string",
-                description: "Absolute path to the LPC file",
-              },
-              line: {
-                type: "number",
-                description: "Line number (0-indexed)",
-              },
-              character: {
-                type: "number",
-                description: "Character position (0-indexed)",
-              },
-            },
-            required: ["file", "line", "character"],
-          },
-        },
-        {
-          name: "lpc_references",
-          description:
-            "Find all references to a symbol at a specific position in an LPC file",
-          inputSchema: {
-            type: "object",
-            properties: {
-              file: {
-                type: "string",
-                description: "Absolute path to the LPC file",
-              },
-              line: {
-                type: "number",
-                description: "Line number (0-indexed)",
-              },
-              character: {
-                type: "number",
-                description: "Character position (0-indexed)",
-              },
-            },
-            required: ["file", "line", "character"],
-          },
-        },
-        {
-          name: "lpc_diagnostics",
-          description:
-            "Get diagnostics (errors, warnings, hints) for an LPC file. This reveals LPC language rules and syntax errors.",
-          inputSchema: {
-            type: "object",
-            properties: {
-              file: {
-                type: "string",
-                description: "Absolute path to the LPC file",
-              },
-            },
-            required: ["file"],
-          },
-        },
-      ],
-    }))
-
-    this.server.setRequestHandler(CallToolRequestSchema, async request => {
-      const {name, arguments: args} = request.params
-
+  setupTools() {
+    // Register hover tool
+    this.server.registerTool("lpc_hover", {
+      description: "Get hover information (documentation) for a symbol at a specific position in an LPC file",
+      inputSchema: {
+        file: z.string().describe("Absolute path to the LPC file"),
+        line: z.number().describe("Line number (0-indexed)"),
+        character: z.number().describe("Character position (0-indexed)"),
+      },
+    }, async({file, line, character}) => {
       if(!this.lspConnection) {
         throw new Error("LSP not initialized")
       }
 
-      const uri = `file://${args.file}`
+      const uri = `file://${file}`
 
       try {
         // Read the file and send didOpen notification
         const fs = await import("fs/promises")
-        const fileContent = await fs.readFile(args.file, "utf-8")
+        const fileContent = await fs.readFile(file, "utf-8")
 
         await this.lspConnection.sendNotification("textDocument/didOpen", {
           textDocument: {
@@ -255,104 +180,208 @@ class LPCMCPServer {
           },
         })
 
-        switch(name) {
-          case "lpc_hover": {
-            const result = await this.lspConnection.sendRequest(
-              "textDocument/hover",
+        const result = await this.lspConnection.sendRequest(
+          "textDocument/hover",
+          {
+            textDocument: {uri},
+            position: {line, character},
+          }
+        )
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        }
+      } catch(error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${error.message}`,
+            },
+          ],
+          isError: true,
+        }
+      }
+    })
+
+    // Register definition tool
+    this.server.registerTool("lpc_definition", {
+      description: "Go to definition of a symbol at a specific position in an LPC file",
+      inputSchema: {
+        file: z.string().describe("Absolute path to the LPC file"),
+        line: z.number().describe("Line number (0-indexed)"),
+        character: z.number().describe("Character position (0-indexed)"),
+      },
+    }, async({file, line, character}) => {
+      if(!this.lspConnection) {
+        throw new Error("LSP not initialized")
+      }
+
+      const uri = `file://${file}`
+
+      try {
+        const fs = await import("fs/promises")
+        const fileContent = await fs.readFile(file, "utf-8")
+
+        await this.lspConnection.sendNotification("textDocument/didOpen", {
+          textDocument: {
+            uri,
+            languageId: "lpc",
+            version: 1,
+            text: fileContent,
+          },
+        })
+
+        const result = await this.lspConnection.sendRequest(
+          "textDocument/definition",
+          {
+            textDocument: {uri},
+            position: {line, character},
+          }
+        )
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        }
+      } catch(error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${error.message}`,
+            },
+          ],
+          isError: true,
+        }
+      }
+    })
+
+    // Register references tool
+    this.server.registerTool("lpc_references", {
+      description: "Find all references to a symbol at a specific position in an LPC file",
+      inputSchema: {
+        file: z.string().describe("Absolute path to the LPC file"),
+        line: z.number().describe("Line number (0-indexed)"),
+        character: z.number().describe("Character position (0-indexed)"),
+      },
+    }, async({file, line, character}) => {
+      if(!this.lspConnection) {
+        throw new Error("LSP not initialized")
+      }
+
+      const uri = `file://${file}`
+
+      try {
+        const fs = await import("fs/promises")
+        const fileContent = await fs.readFile(file, "utf-8")
+
+        await this.lspConnection.sendNotification("textDocument/didOpen", {
+          textDocument: {
+            uri,
+            languageId: "lpc",
+            version: 1,
+            text: fileContent,
+          },
+        })
+
+        const result = await this.lspConnection.sendRequest(
+          "textDocument/references",
+          {
+            textDocument: {uri},
+            position: {line, character},
+            context: {includeDeclaration: true},
+          }
+        )
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        }
+      } catch(error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: ${error.message}`,
+            },
+          ],
+          isError: true,
+        }
+      }
+    })
+
+    // Register diagnostics tool
+    this.server.registerTool("lpc_diagnostics", {
+      description: "Get diagnostics (errors, warnings, hints) for an LPC file. This reveals LPC language rules and syntax errors.",
+      inputSchema: {
+        file: z.string().describe("Absolute path to the LPC file"),
+      },
+    }, async({file}) => {
+      if(!this.lspConnection) {
+        throw new Error("LSP not initialized")
+      }
+
+      const uri = `file://${file}`
+
+      try {
+        const fs = await import("fs/promises")
+        const fileContent = await fs.readFile(file, "utf-8")
+
+        await this.lspConnection.sendNotification("textDocument/didOpen", {
+          textDocument: {
+            uri,
+            languageId: "lpc",
+            version: 1,
+            text: fileContent,
+          },
+        })
+
+        // Wait a bit for diagnostics to come through
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        const diagnostics = this.diagnosticsCache.get(uri) || []
+
+        if(diagnostics.length === 0) {
+          return {
+            content: [
               {
-                textDocument: {uri},
-                position: {line: args.line, character: args.character},
-              }
-            )
-
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: JSON.stringify(result, null, 2),
-                },
-              ],
-            }
+                type: "text",
+                text: "No diagnostics found for this file. The code appears to be valid.",
+              },
+            ],
           }
+        }
 
-          case "lpc_definition": {
-            const result = await this.lspConnection.sendRequest(
-              "textDocument/definition",
-              {
-                textDocument: {uri},
-                position: {line: args.line, character: args.character},
-              }
-            )
+        // Format diagnostics in a readable way
+        const formatted = diagnostics.map(d => {
+          const severity = ["Error", "Warning", "Information", "Hint"][d.severity - 1] || "Unknown"
+          const line = d.range.start.line + 1 // Convert to 1-indexed
+          const char = d.range.start.character + 1
 
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: JSON.stringify(result, null, 2),
-                },
-              ],
-            }
-          }
+          return `[${severity}] Line ${line}:${char} - ${d.message}`
+        }).join("\n")
 
-          case "lpc_references": {
-            const result = await this.lspConnection.sendRequest(
-              "textDocument/references",
-              {
-                textDocument: {uri},
-                position: {line: args.line, character: args.character},
-                context: {includeDeclaration: true},
-              }
-            )
-
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: JSON.stringify(result, null, 2),
-                },
-              ],
-            }
-          }
-
-          case "lpc_diagnostics": {
-            // Just open the file to trigger diagnostics
-            // Wait a bit for diagnostics to come through
-            await new Promise(resolve => setTimeout(resolve, 500))
-
-            const diagnostics = this.diagnosticsCache.get(uri) || []
-
-            if(diagnostics.length === 0) {
-              return {
-                content: [
-                  {
-                    type: "text",
-                    text: "No diagnostics found for this file. The code appears to be valid.",
-                  },
-                ],
-              }
-            }
-
-            // Format diagnostics in a readable way
-            const formatted = diagnostics.map(d => {
-              const severity = ["Error", "Warning", "Information", "Hint"][d.severity - 1] || "Unknown"
-              const line = d.range.start.line + 1 // Convert to 1-indexed
-              const char = d.range.start.character + 1
-
-              return `[${severity}] Line ${line}:${char} - ${d.message}`
-            }).join("\n")
-
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: `Found ${diagnostics.length} diagnostic(s):\n\n${formatted}\n\nRaw diagnostics:\n${JSON.stringify(diagnostics, null, 2)}`,
-                },
-              ],
-            }
-          }
-
-          default:
-            throw new Error(`Unknown tool: ${name}`)
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Found ${diagnostics.length} diagnostic(s):\n\n${formatted}\n\nRaw diagnostics:\n${JSON.stringify(diagnostics, null, 2)}`,
+            },
+          ],
         }
       } catch(error) {
         return {
