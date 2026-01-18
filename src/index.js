@@ -7,7 +7,6 @@ import {spawn} from "child_process"
 import * as rpc from "vscode-jsonrpc/node.js"
 import path from "path"
 import {DirectoryObject} from "@gesslar/toolkit"
-// ...existing code...
 import {Transform} from "stream"
 
 class LPCMCPServer {
@@ -154,11 +153,11 @@ class LPCMCPServer {
     // Register hover tool
     this.server.registerTool("lpc_hover", {
       description: "Get hover information (documentation) for a symbol at a specific position in an LPC file",
-      inputSchema: {
+      inputSchema: z.object({
         file: z.string().describe("Absolute path to the LPC file"),
         line: z.number().describe("Line number (0-indexed)"),
         character: z.number().describe("Character position (0-indexed)"),
-      },
+      }),
     }, async({file, line, character}) => {
       if(!this.lspConnection) {
         throw new Error("LSP not initialized")
@@ -212,11 +211,11 @@ class LPCMCPServer {
     // Register definition tool
     this.server.registerTool("lpc_definition", {
       description: "Go to definition of a symbol at a specific position in an LPC file",
-      inputSchema: {
+      inputSchema: z.object({
         file: z.string().describe("Absolute path to the LPC file"),
         line: z.number().describe("Line number (0-indexed)"),
         character: z.number().describe("Character position (0-indexed)"),
-      },
+      }),
     }, async({file, line, character}) => {
       if(!this.lspConnection) {
         throw new Error("LSP not initialized")
@@ -269,11 +268,11 @@ class LPCMCPServer {
     // Register references tool
     this.server.registerTool("lpc_references", {
       description: "Find all references to a symbol at a specific position in an LPC file",
-      inputSchema: {
+      inputSchema: z.object({
         file: z.string().describe("Absolute path to the LPC file"),
         line: z.number().describe("Line number (0-indexed)"),
         character: z.number().describe("Character position (0-indexed)"),
-      },
+      }),
     }, async({file, line, character}) => {
       if(!this.lspConnection) {
         throw new Error("LSP not initialized")
@@ -327,9 +326,9 @@ class LPCMCPServer {
     // Register diagnostics tool
     this.server.registerTool("lpc_diagnostics", {
       description: "Get diagnostics (errors, warnings, hints) for an LPC file. This reveals LPC language rules and syntax errors.",
-      inputSchema: {
+      inputSchema: z.object({
         file: z.string().describe("Absolute path to the LPC file"),
-      },
+      }),
     }, async({file}) => {
       if(!this.lspConnection) {
         throw new Error("LSP not initialized")
