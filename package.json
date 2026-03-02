@@ -51,7 +51,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@gesslar/uglier": "^1.1.0",
+    "@gesslar/uglier": "^2.0.0",
     "eslint": "^10.0.2"
   }
 }
