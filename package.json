@@ -52,6 +52,6 @@
   },
   "devDependencies": {
     "@gesslar/uglier": "^1.1.0",
-    "eslint": "^9.39.2"
+    "eslint": "^10.0.2"
   }
 }
