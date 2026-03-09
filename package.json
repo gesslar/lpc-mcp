@@ -45,7 +45,7 @@
     "major": "pnpm version major"
   },
   "dependencies": {
-    "@gesslar/toolkit": "^3.23.0",
+    "@gesslar/toolkit": "^4.1.0",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "vscode-jsonrpc": "^8.2.1",
     "zod": "^4.3.5"
