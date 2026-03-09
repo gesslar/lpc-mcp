@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@gesslar/toolkit':
-        specifier: ^3.23.0
-        version: 3.42.0
+        specifier: ^4.1.0
+        version: 4.1.0
       '@modelcontextprotocol/sdk':
         specifier: ^1.25.2
         version: 1.27.1(zod@4.3.6)
@@ -73,8 +73,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@gesslar/toolkit@3.42.0':
-    resolution: {integrity: sha512-9gsR9V2vfY628AqvYp2sslSUrQqLOXMvS5XewtWuqWyEUyHJ8zupYYal10QXHTaIcvKz9mus/oX95LY1LvGNjg==}
+  '@gesslar/toolkit@4.1.0':
+    resolution: {integrity: sha512-x98bZvBX1Zo1MJjDSm5qsL10AwGDVxygx38WRA5ht/Mh7YFndr0/zRXf0PXOn5D7XvEgMgHj7pPciZmljKTF4w==}
     engines: {node: '>=24.13.0'}
 
   '@gesslar/uglier@2.0.0':
@@ -798,7 +798,7 @@ snapshots:
 
   '@gesslar/colours@0.8.0': {}
 
-  '@gesslar/toolkit@3.42.0':
+  '@gesslar/toolkit@4.1.0':
     dependencies:
       '@gesslar/colours': 0.8.0
       ajv: 8.18.0
@@ -809,7 +809,7 @@ snapshots:
   '@gesslar/uglier@2.0.0(eslint@10.0.3)':
     dependencies:
       '@gesslar/colours': 0.8.0
-      '@gesslar/toolkit': 3.42.0
+      '@gesslar/toolkit': 4.1.0
       '@skarab/detect-package-manager': 1.0.0
       '@stylistic/eslint-plugin': 5.9.0(eslint@10.0.3)
       eslint-plugin-jsdoc: 62.7.1(eslint@10.0.3)
