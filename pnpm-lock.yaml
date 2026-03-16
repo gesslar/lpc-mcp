@@ -23,7 +23,7 @@ importers:
     devDependencies:
       '@gesslar/uglier':
         specifier: ^2.0.0
-        version: 2.0.0(eslint@10.0.3)
+        version: 2.2.0(eslint@10.0.3)
       eslint:
         specifier: ^10.0.2
         version: 10.0.3
@@ -77,8 +77,8 @@ packages:
     resolution: {integrity: sha512-x98bZvBX1Zo1MJjDSm5qsL10AwGDVxygx38WRA5ht/Mh7YFndr0/zRXf0PXOn5D7XvEgMgHj7pPciZmljKTF4w==}
     engines: {node: '>=24.13.0'}
 
-  '@gesslar/uglier@2.0.0':
-    resolution: {integrity: sha512-9NWCJ66KdHDJc/flsiXW1hyEA3DAXOja8R6foltGiyqWl30aT6aRFEW3z3n3b0u+CMk+UV8iTQKIM+tXkTYZQA==}
+  '@gesslar/uglier@2.2.0':
+    resolution: {integrity: sha512-8Z4j7T2+1PZCnvQc+PHJXJIR8CKLm2TqbUoXQLume21rjvF/IC+YXhEG6Ph7Z84udPPJi4DpvoRajvMx8kNNOg==}
     engines: {node: '>=24.13.0'}
     hasBin: true
 
@@ -122,8 +122,8 @@ packages:
     resolution: {integrity: sha512-CuU1x6LgkJIF+H8FCnKijx6DbWVP1Y7kqPk88LSxNe0ulbe3BZ37qd3AaX3t5vnFZESLFMcjQd2dlPhdvWNSdQ==}
     engines: {node: '>=14', pnpm: '>=7'}
 
-  '@stylistic/eslint-plugin@5.9.0':
-    resolution: {integrity: sha512-FqqSkvDMYJReydrMhlugc71M76yLLQWNfmGq+SIlLa7N3kHp8Qq8i2PyWrVNAfjOyOIY+xv9XaaYwvVW7vroMA==}
+  '@stylistic/eslint-plugin@5.10.0':
+    resolution: {integrity: sha512-nPK52ZHvot8Ju/0A4ucSX1dcPV2/1clx0kLcH5wDmrE4naKso7TUC/voUyU1O9OTKTrR6MYip6LP0ogEMQ9jPQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^9.0.0 || ^10.0.0
@@ -137,8 +137,8 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@typescript-eslint/types@8.56.1':
-    resolution: {integrity: sha512-dbMkdIUkIkchgGDIv7KLUpa0Mda4IYjo4IAMJUZ+3xNoUXxMsk9YtKpTHSChRS85o+H9ftm51gsK1dZReY9CVw==}
+  '@typescript-eslint/types@8.57.0':
+    resolution: {integrity: sha512-dTLI8PEXhjUC7B9Kre+u0XznO696BhXcTlOn0/6kf1fHaQW8+VjJAVHJ3eTI14ZapTxdkOmc80HblPQLaEeJdg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   accepts@2.0.0:
@@ -271,8 +271,8 @@ packages:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
 
-  eslint-plugin-jsdoc@62.7.1:
-    resolution: {integrity: sha512-4Zvx99Q7d1uggYBUX/AIjvoyqXhluGbbKrRmG8SQTLprPFg6fa293tVJH1o1GQwNe3lUydd8ZHzn37OaSncgSQ==}
+  eslint-plugin-jsdoc@62.8.0:
+    resolution: {integrity: sha512-hu3r9/6JBmPG6wTcqtYzgZAnjEG2eqRUATfkFscokESg1VDxZM21ZaMire0KjeMwfj+SXvgB4Rvh5LBuesj92w==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
     peerDependencies:
       eslint: ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
@@ -759,7 +759,7 @@ snapshots:
   '@es-joy/jsdoccomment@0.84.0':
     dependencies:
       '@types/estree': 1.0.8
-      '@typescript-eslint/types': 8.56.1
+      '@typescript-eslint/types': 8.57.0
       comment-parser: 1.4.5
       esquery: 1.7.0
       jsdoc-type-pratt-parser: 7.1.1
@@ -806,13 +806,13 @@ snapshots:
       supports-color: 10.2.2
       yaml: 2.8.2
 
-  '@gesslar/uglier@2.0.0(eslint@10.0.3)':
+  '@gesslar/uglier@2.2.0(eslint@10.0.3)':
     dependencies:
       '@gesslar/colours': 0.8.0
       '@gesslar/toolkit': 4.1.0
       '@skarab/detect-package-manager': 1.0.0
-      '@stylistic/eslint-plugin': 5.9.0(eslint@10.0.3)
-      eslint-plugin-jsdoc: 62.7.1(eslint@10.0.3)
+      '@stylistic/eslint-plugin': 5.10.0(eslint@10.0.3)
+      eslint-plugin-jsdoc: 62.8.0(eslint@10.0.3)
       globals: 17.4.0
     transitivePeerDependencies:
       - eslint
@@ -859,10 +859,10 @@ snapshots:
 
   '@skarab/detect-package-manager@1.0.0': {}
 
-  '@stylistic/eslint-plugin@5.9.0(eslint@10.0.3)':
+  '@stylistic/eslint-plugin@5.10.0(eslint@10.0.3)':
     dependencies:
       '@eslint-community/eslint-utils': 4.9.1(eslint@10.0.3)
-      '@typescript-eslint/types': 8.56.1
+      '@typescript-eslint/types': 8.57.0
       eslint: 10.0.3
       eslint-visitor-keys: 4.2.1
       espree: 10.4.0
@@ -875,7 +875,7 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@typescript-eslint/types@8.56.1': {}
+  '@typescript-eslint/types@8.57.0': {}
 
   accepts@2.0.0:
     dependencies:
@@ -991,7 +991,7 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-plugin-jsdoc@62.7.1(eslint@10.0.3):
+  eslint-plugin-jsdoc@62.8.0(eslint@10.0.3):
     dependencies:
       '@es-joy/jsdoccomment': 0.84.0
       '@es-joy/resolve.exports': 1.2.0
