@@ -27,7 +27,8 @@ class LPCMCPServer {
     this.lspProcess = null
     this.lspConnection = null
     this.diagnosticsCache = new Map() // Map of file URI -> diagnostics array
-    this.openDocuments = new Set() // Track which documents are open in the LSP
+    this.openDocuments = new Map() // Map of URI -> insertion order (LRU tracking)
+    this.openDocumentsMaxSize = 10 // Maximum number of documents to keep open
     this.diagnosticsWaiters = new Map() // Map of file URI -> {resolve, timer}
     this.setupTools()
   }
@@ -39,9 +40,15 @@ class LPCMCPServer {
     const debugMode = process.env.LPC_DEBUG === "true" || process.env.LPC_DEBUG === "1"
 
     if(debugMode) {
-      // In debug mode, use the local development version
-      lspPath = path.join("/projects/git/lpc-language-server", "out/server/src/server.js")
-      console.error("DEBUG MODE: Using local development server")
+      // In debug mode, prefer an explicit path if provided, otherwise use a path relative to the current working directory
+      const envLspPath = process.env.LPC_LSP_PATH
+      if(envLspPath && envLspPath.trim() !== "") {
+        lspPath = envLspPath
+        console.error("DEBUG MODE: Using local development server from LPC_LSP_PATH:", lspPath)
+      } else {
+        lspPath = path.resolve(process.cwd(), "out/server/src/server.js")
+        console.error("DEBUG MODE: Using local development server relative to CWD:", lspPath)
+      }
     } else {
       // Find the latest LPC language server extension
       const extensionsDir = new DirectoryObject(path.join(process.env.HOME, ".vscode/extensions"))
@@ -181,6 +188,16 @@ class LPCMCPServer {
       this.diagnosticsCache.delete(uri)
     }
 
+    // If we've reached the document limit, close the least recently used document
+    if(this.openDocuments.size >= this.openDocumentsMaxSize) {
+      const lruUri = this.openDocuments.keys().next().value
+      await this.lspConnection.sendNotification("textDocument/didClose", {
+        textDocument: {uri: lruUri},
+      })
+      this.openDocuments.delete(lruUri)
+      this.diagnosticsCache.delete(lruUri)
+    }
+
     await this.lspConnection.sendNotification("textDocument/didOpen", {
       textDocument: {
         uri,
@@ -189,14 +206,14 @@ class LPCMCPServer {
         text: fileContent,
       },
     })
-    this.openDocuments.add(uri)
+    this.openDocuments.set(uri, Date.now())
   }
 
   waitForDiagnostics(uri, timeoutMs = 5000) {
     // If we already have cached diagnostics from the notification firing
     // during ensureDocumentOpen, return them immediately
     const cached = this.diagnosticsCache.get(uri)
-    if(cached && cached.length > 0) {
+    if(cached !== undefined) {
       return Promise.resolve(cached)
     }
 
