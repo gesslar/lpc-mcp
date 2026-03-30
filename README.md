@@ -183,6 +183,8 @@ The configuration is the same for any MCP-compatible tool:
 2. Provide the Node.js command and path to `index.js`
 3. Set `LPC_WORKSPACE_ROOT` environment variable to your mudlib root
 
+Optional environment variables (`LPC_DEBUG`, `LPC_LSP_PATH`) can be added to the `env` block in the same way. See the [Environment Variables](#environment-variables) section for the full list.
+
 ## Usage Examples
 
 Once configured, you can ask your AI assistant natural language questions:
@@ -285,12 +287,32 @@ ls ~/.vscode/extensions/ | grep jlchmura.lpc
 
 ### Debug Mode Example
 
+**Shell / terminal:**
+
 ```bash
 # Use a local checkout of the LPC language server
 export LPC_DEBUG=true
 export LPC_LSP_PATH=/path/to/lpc-language-server/out/server/src/server.js
 export LPC_WORKSPACE_ROOT=/path/to/your/mudlib
 node index.js
+```
+
+**MCP config file (`.mcp.json`, `claude_desktop_config.json`, etc.):**
+
+```json
+{
+  "mcpServers": {
+    "lpc": {
+      "command": "node",
+      "args": ["/absolute/path/to/lpc-mcp/index.js"],
+      "env": {
+        "LPC_WORKSPACE_ROOT": "/path/to/your/mudlib",
+        "LPC_DEBUG": "true",
+        "LPC_LSP_PATH": "/path/to/lpc-language-server/out/server/src/server.js"
+      }
+    }
+  }
+}
 ```
 
 ## How It Works
