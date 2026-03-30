@@ -8,13 +8,14 @@ import * as rpc from "vscode-jsonrpc/node.js"
 import path from "path"
 import {DirectoryObject} from "@gesslar/toolkit"
 import {Transform} from "stream"
+import pkg from "../package.json" with {type: "json"}
 
 class LPCMCPServer {
   constructor() {
     this.server = new McpServer(
       {
-        name: "lpc-mcp-server",
-        version: "0.1.0",
+        name: pkg.name,
+        version: pkg.version,
       },
       {
         capabilities: {
@@ -26,25 +27,38 @@ class LPCMCPServer {
     this.lspProcess = null
     this.lspConnection = null
     this.diagnosticsCache = new Map() // Map of file URI -> diagnostics array
+    this.openDocuments = new Set() // Track which documents are open in the LSP
+    this.diagnosticsWaiters = new Map() // Map of file URI -> {resolve, timer}
     this.setupTools()
   }
 
   async startLSP() {
-    // Find the latest LPC language server extension
-    const extensionsDir = new DirectoryObject(path.join(process.env.HOME, ".vscode/extensions"))
-    const {directories} = await extensionsDir.read("jlchmura.lpc-*")
+    let lspPath
 
-    if(directories.length === 0) {
-      throw new Error("LPC language server extension not found. Please install the jlchmura.lpc extension.")
+    // Check for debug mode
+    const debugMode = process.env.LPC_DEBUG === "true" || process.env.LPC_DEBUG === "1"
+
+    if(debugMode) {
+      // In debug mode, use the local development version
+      lspPath = path.join("/projects/git/lpc-language-server", "out/server/src/server.js")
+      console.error("DEBUG MODE: Using local development server")
+    } else {
+      // Find the latest LPC language server extension
+      const extensionsDir = new DirectoryObject(path.join(process.env.HOME, ".vscode/extensions"))
+      const {directories} = await extensionsDir.read("jlchmura.lpc-*")
+
+      if(directories.length === 0) {
+        throw new Error("LPC language server extension not found. Please install the jlchmura.lpc extension.")
+      }
+
+      // Sort by name to get the latest version (highest version number last)
+      const latestExtension = directories
+        .map(dir => dir.name)
+        .sort()
+        .reverse()[0]
+
+      lspPath = path.join(extensionsDir.path, latestExtension, "out/server/src/server.js")
     }
-
-    // Sort by name to get the latest version (highest version number last)
-    const latestExtension = directories
-      .map(dir => dir.name)
-      .sort()
-      .reverse()[0]
-
-    const lspPath = path.join(extensionsDir.path, latestExtension, "out/server/src/server.js")
 
     console.error("Starting LPC Language Server from:", lspPath)
 
@@ -106,6 +120,14 @@ class LPCMCPServer {
     this.lspConnection.onNotification("textDocument/publishDiagnostics", params => {
       console.error(`Received diagnostics for ${params.uri}: ${params.diagnostics.length} issues`)
       this.diagnosticsCache.set(params.uri, params.diagnostics)
+
+      // Resolve any pending waiter for this URI
+      const waiter = this.diagnosticsWaiters.get(params.uri)
+      if(waiter) {
+        clearTimeout(waiter.timer)
+        this.diagnosticsWaiters.delete(params.uri)
+        waiter.resolve(params.diagnostics)
+      }
     })
 
     // Start listening
@@ -149,6 +171,45 @@ class LPCMCPServer {
     }
   }
 
+  async ensureDocumentOpen(uri, fileContent) {
+    // Close the document first if already open, so the LSP re-processes it
+    if(this.openDocuments.has(uri)) {
+      await this.lspConnection.sendNotification("textDocument/didClose", {
+        textDocument: {uri},
+      })
+      this.openDocuments.delete(uri)
+      this.diagnosticsCache.delete(uri)
+    }
+
+    await this.lspConnection.sendNotification("textDocument/didOpen", {
+      textDocument: {
+        uri,
+        languageId: "lpc",
+        version: 1,
+        text: fileContent,
+      },
+    })
+    this.openDocuments.add(uri)
+  }
+
+  waitForDiagnostics(uri, timeoutMs = 5000) {
+    // If we already have cached diagnostics from the notification firing
+    // during ensureDocumentOpen, return them immediately
+    const cached = this.diagnosticsCache.get(uri)
+    if(cached && cached.length > 0) {
+      return Promise.resolve(cached)
+    }
+
+    return new Promise(resolve => {
+      const timer = setTimeout(() => {
+        this.diagnosticsWaiters.delete(uri)
+        resolve(this.diagnosticsCache.get(uri) || [])
+      }, timeoutMs)
+
+      this.diagnosticsWaiters.set(uri, {resolve, timer})
+    })
+  }
+
   setupTools() {
     // Register hover tool
     this.server.registerTool("lpc_hover", {
@@ -166,18 +227,10 @@ class LPCMCPServer {
       const uri = `file://${file}`
 
       try {
-        // Read the file and send didOpen notification
         const fs = await import("fs/promises")
         const fileContent = await fs.readFile(file, "utf-8")
 
-        await this.lspConnection.sendNotification("textDocument/didOpen", {
-          textDocument: {
-            uri,
-            languageId: "lpc",
-            version: 1,
-            text: fileContent,
-          },
-        })
+        await this.ensureDocumentOpen(uri, fileContent)
 
         const result = await this.lspConnection.sendRequest(
           "textDocument/hover",
@@ -227,14 +280,7 @@ class LPCMCPServer {
         const fs = await import("fs/promises")
         const fileContent = await fs.readFile(file, "utf-8")
 
-        await this.lspConnection.sendNotification("textDocument/didOpen", {
-          textDocument: {
-            uri,
-            languageId: "lpc",
-            version: 1,
-            text: fileContent,
-          },
-        })
+        await this.ensureDocumentOpen(uri, fileContent)
 
         const result = await this.lspConnection.sendRequest(
           "textDocument/definition",
@@ -284,14 +330,7 @@ class LPCMCPServer {
         const fs = await import("fs/promises")
         const fileContent = await fs.readFile(file, "utf-8")
 
-        await this.lspConnection.sendNotification("textDocument/didOpen", {
-          textDocument: {
-            uri,
-            languageId: "lpc",
-            version: 1,
-            text: fileContent,
-          },
-        })
+        await this.ensureDocumentOpen(uri, fileContent)
 
         const result = await this.lspConnection.sendRequest(
           "textDocument/references",
@@ -340,19 +379,9 @@ class LPCMCPServer {
         const fs = await import("fs/promises")
         const fileContent = await fs.readFile(file, "utf-8")
 
-        await this.lspConnection.sendNotification("textDocument/didOpen", {
-          textDocument: {
-            uri,
-            languageId: "lpc",
-            version: 1,
-            text: fileContent,
-          },
-        })
+        await this.ensureDocumentOpen(uri, fileContent)
 
-        // Wait a bit for diagnostics to come through
-        await new Promise(resolve => setTimeout(resolve, 500))
-
-        const diagnostics = this.diagnosticsCache.get(uri) || []
+        const diagnostics = await this.waitForDiagnostics(uri)
 
         if(diagnostics.length === 0) {
           return {
