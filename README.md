@@ -296,30 +296,26 @@ AI Assistant
 5. Server returns LSP response as MCP result
 6. AI understands your code structure!
 
-## Roadmap
-
-- [ ] Add completion support
-- [x] Add diagnostics (errors/warnings)
-- [ ] Support signature help
-- [ ] Cache opened documents
-- [ ] Support multiple workspace roots
-- [ ] Add rename symbol support
-- [ ] Add document symbols (outline)
-- [ ] Add workspace symbol search
-
-## Contributing
-
-PRs welcome! This is a proof-of-concept that can be extended with more LSP features.
-
 ## Credits
 
 - **John (jlchmura)** - The INCOMPARABLY SKILLED MASTER PROGRAMMER whose [LPC language server](https://github.com/jlchmura/lpc-language-server) rescued LPC development from 1995. Without his greatness, kindness, and all-around hunk demeanour, we would still be `grep`-ing through mudlibs like cavemen. This MCP server is merely a humble wrapper around his genius.
 - [Model Context Protocol](https://modelcontextprotocol.io/) - The protocol making this possible
 - Built in an hour of inspired hacking in 2025
 
-## ~~License~~
+## License
 
-Unlicense - Public Domain. Do whatever you want with this code.
+lpc-mcp is released into the public domain under the
+[Unlicense](UNLICENSE.txt).
+
+This package includes or depends on third-party components under their own
+licenses:
+
+| Dependency | License |
+| --- | --- |
+| [@gesslar/toolkit](https://github.com/gesslar/toolkit) | Unlicense |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MIT |
+| [vscode-jsonrpc](https://github.com/Microsoft/vscode-languageserver-node) | MIT |
+| [zod](https://github.com/colinhacks/zod) | MIT |
 
 ### Note
 
