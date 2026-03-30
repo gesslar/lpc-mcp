@@ -315,7 +315,7 @@ licenses:
 | [@gesslar/uglier](https://github.com/gesslar/uglier) | Unlicense |
 | [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MIT |
 | [vscode-jsonrpc](https://github.com/Microsoft/vscode-languageserver-node) | MIT |
-| [zod](https://github.com/colinhacks/zod) | MIT
+| [zod](https://github.com/colinhacks/zod) | MIT |
 
 ### Note
 
