@@ -275,6 +275,24 @@ Find your version:
 ls ~/.vscode/extensions/ | grep jlchmura.lpc
 ```
 
+## Environment Variables
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `LPC_WORKSPACE_ROOT` | Yes | Absolute path to your mudlib root (the directory containing `lpc-config.json`) |
+| `LPC_DEBUG` | No | Set to `true` or `1` to enable debug mode, which loads a local development build of the LPC language server instead of the installed VS Code extension |
+| `LPC_LSP_PATH` | No | Absolute path to a custom `server.js` for the LPC language server. Only used when `LPC_DEBUG` is enabled. If not set, debug mode falls back to `out/server/src/server.js` relative to `process.cwd()` |
+
+### Debug Mode Example
+
+```bash
+# Use a local checkout of the LPC language server
+export LPC_DEBUG=true
+export LPC_LSP_PATH=/path/to/lpc-language-server/out/server/src/server.js
+export LPC_WORKSPACE_ROOT=/path/to/your/mudlib
+node index.js
+```
+
 ## How It Works
 
 ```text
