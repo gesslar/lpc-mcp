@@ -5,7 +5,7 @@
     "name": "gesslar",
     "url": "https://gesslar.dev"
   },
-  "version": "1.5.1",
+  "version": "1.6.0",
   "license": "Unlicense",
   "homepage": "https://github.com/gesslar/lpc-mcp#readme",
   "repository": {
@@ -29,7 +29,7 @@
     "lpc-mcp": "./src/index.js"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24.13.0"
   },
   "scripts": {
     "start": "node src/index.js",
