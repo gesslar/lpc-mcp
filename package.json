@@ -44,7 +44,7 @@
     "major": "npm version major"
   },
   "dependencies": {
-    "@gesslar/toolkit": "^4.4.0",
+    "@gesslar/toolkit": "^5.0.0",
     "@gesslar/uglier": "^2.3.1",
     "@modelcontextprotocol/sdk": "^1.28.0",
     "vscode-jsonrpc": "^8.2.1",
