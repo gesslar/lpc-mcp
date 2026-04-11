@@ -6,7 +6,7 @@
     "url": "https://gesslar.dev"
   },
   "version": "1.6.0",
-  "license": "Unlicense",
+  "license": "0BSD",
   "homepage": "https://github.com/gesslar/lpc-mcp#readme",
   "repository": {
     "type": "git",
@@ -44,13 +44,13 @@
     "major": "npm version major"
   },
   "dependencies": {
-    "@gesslar/toolkit": "^5.0.0",
-    "@gesslar/uglier": "^2.3.1",
-    "@modelcontextprotocol/sdk": "^1.28.0",
+    "@gesslar/toolkit": "^5.0.1",
+    "@gesslar/uglier": "^2.4.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "vscode-jsonrpc": "^8.2.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "eslint": "^10.1.0"
+    "eslint": "^10.2.0"
   }
 }
