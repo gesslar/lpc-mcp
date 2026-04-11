@@ -344,15 +344,15 @@ AI Assistant
 
 ## License
 
-`@gesslar/lpc-mcp` is released into the public domain under the [Unlicense](UNLICENSE.txt).
+`@gesslar/lpc-mcp` is released under the [0BSD](LICENSE.txt).
 
 This package includes or depends on third-party components under their own
 licenses:
 
 | Dependency | License |
 | --- | --- |
-| [@gesslar/toolkit](https://github.com/gesslar/toolkit) | Unlicense |
-| [@gesslar/uglier](https://github.com/gesslar/uglier) | Unlicense |
+| [@gesslar/toolkit](https://github.com/gesslar/toolkit) | 0BSD |
+| [@gesslar/uglier](https://github.com/gesslar/uglier) | 0BSD |
 | [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MIT |
 | [vscode-jsonrpc](https://github.com/Microsoft/vscode-languageserver-node) | MIT |
 | [zod](https://github.com/colinhacks/zod) | MIT |
